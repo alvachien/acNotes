@@ -8,6 +8,7 @@ var mysql = require('mysql');
 
 var routes = require('./routes/index');
 var about = require('./routes/about');
+var api = require('./routes/api');
 
 var app = express();
 
@@ -23,7 +24,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'app')));
+//app.use(express.static(path.join(__dirname, 'app')));
 app.use('/', routes);
 app.use('/about', about);
 
