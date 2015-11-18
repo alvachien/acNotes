@@ -1,0 +1,76 @@
+<div id="viewHome">
+	<header class="navbar navbar-inverse navbar-fixed-top">
+	    <div class="navbar-inner">
+	        <div class="container">
+	            <div class="navbar-header">
+	                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-3" ng-click="isCollapsed = !isCollapsed">
+	                    <span class="sr-only">Toggle navigation</span>
+	                    <span class="icon-bar"></span>
+	                    <span class="icon-bar"></span>
+	                    <span class="icon-bar"></span>
+	                </button>
+	                	<a href="#/home" role="button" class="navbar-brand">
+	                        a.c. Note
+	                    </a>
+	            </div>
+	            <nav class="hidden-xs">
+	                <ul class="nav navbar-nav">
+	                    <li class="dropdown" dropdown>
+	                        <a role="button" class="dropdown-toggle" dropdown-toggle><span translate="Notes">Notes</span><b class="caret"></b></a>
+	                        <ul class="dropdown-menu">
+								<li><a ui-sref="home.note.list">Note List</a></li>
+								<li role="separator" class="divider"></li>
+								<li><a ui-sref="home.note.create">Create Note</a></li>
+	                        </ul>
+	                    </li>
+	                    <li class="dropdown" dropdown>
+	                        <a role="button" class="dropdown-toggle" dropdown-toggle>To Dos<b class="caret"></b></a>
+	                        <ul class="dropdown-menu">
+								<li><a ui-sref="home.todo.list">ToDo List</a></li>
+								<li role="separator" class="divider"></li>
+								<li><a ui-sref="home.todo.create">Create ToDo</a></li>
+	                        </ul>
+	                    </li>
+	                </ul>
+	                
+	                <ul class="nav navbar-nav navbar-right">
+	                    <li class="dropdown" dropdown>
+		                	<a role="button" class="dropdown-toggle" dropdown-toggle><span translate="Themes">Themes</span><b class="caret"></b></a>
+							<ul class="dropdown-menu">
+								<li><a href="" ng-click="setTheme()"><span translate="Default">Default</span></a></li>
+								<li role="separator" class="divider"></li>
+								<li><a href="" ng-click="setTheme('cerulean')">cerulean</a></li>
+								<li><a href="" ng-click="setTheme('cosmo')">cosmo</a></li>
+								<li><a href="" ng-click="setTheme('custom')">custom</a></li>
+								<li><a href="" ng-click="setTheme('cyborg')">cyborg</a></li>
+								<li><a href="" ng-click="setTheme('darkly')">darkly</a></li>								
+								<li><a href="" ng-click="setTheme('flatly')">flatly</a></li>
+								<li><a href="" ng-click="setTheme('journal')">journal</a></li>
+								<li><a href="" ng-click="setTheme('lumen')">lumen</a></li>
+								<li><a href="" ng-click="setTheme('paper')">paper</a></li>
+								<li><a href="" ng-click="setTheme('readable')">readable</a></li>
+								<li><a href="" ng-click="setTheme('sandstone')">sandstone</a></li>
+								<li><a href="" ng-click="setTheme('simplex')">simplex</a></li>
+								<li><a href="" ng-click="setTheme('slate')">slate</a></li>
+								<li><a href="" ng-click="setTheme('spacelab')">spacelab</a></li>
+								<li><a href="" ng-click="setTheme('superhero')">superhero</a></li>
+								<li><a href="" ng-click="setTheme('united')">united</a></li>
+								<li><a href="" ng-click="setTheme('yeti')">yeti</a></li>
+							</ul>
+						</li>
+	                    <li class="dropdown" dropdown>
+		                	<a role="button" class="dropdown-toggle" dropdown-toggle><span translate="Common.Language">Languages</span><b class="caret"></b></a>
+							<ul class="dropdown-menu">
+                                <li><a href="" ng-click="setLanguage('zh')">简体中文</a></li>
+								<li><a href="" ng-click="setLanguage('en')">English</a></li>
+							</ul>
+						</li>
+					</ul>	                
+	            </nav>
+	        </div>
+	    </div>
+	</header>
+	<!-- Navigation area ends -->
+
+	<div class="container" ui-view></div>
+</div>

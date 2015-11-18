@@ -1,0 +1,17 @@
+{
+	"MainPage": "Main Page",
+	"Notes": "Notes",
+	"ToDos": "To Dos",
+	"CreateNote": "Create Note",
+	"DisplayNote": "Display Note",
+	"MaintainNote": "Maintain Note",
+	"Delete": "Delete",
+	"CreateToDo": "Create To Do",
+	"MaintainToDo": "Maintain To Do",
+	"Languages": "Languages",
+	
+	"New": "New",
+	"Refresh": "Refresh",
+	"Display": "Display",
+	"Edit": "Edit"
+}
