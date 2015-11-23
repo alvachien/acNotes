@@ -3,15 +3,15 @@
 (function() {
 	"use strict";	
 	
-	angular.module('acNoteApp', ["ui.router", "ngAnimate", 'ui.bootstrap', 'ngSanitize', 
-		'pascalprecht.translate', 'ngJsTree', 'ngTouch', 'selectize'])
+	angular.module('acNoteApp', ["ui.router", "ngAnimate", 'ui.bootstrap', 'ngSanitize','ngResource', 
+		'pascalprecht.translate', 'ngJsTree', 'ngTouch', 'selectize', 'ui.tinymce', 'smart-table'])
 		.run(['$rootScope', '$state', '$stateParams', '$modal', '$timeout', '$log', function ($rootScope,   $state,   $stateParams, $modal, $timeout, $log) {
 			 $rootScope.$state = $state;
 			 $rootScope.$stateParams = $stateParams;
 			    
 			 $rootScope.$on('$stateChangeStart', 
 		    		function(event, toState, toParams, fromState, fromParams) {
-		    			console.log('HIH: state change start, target url is ' + toState.url + "; state is " + toState.name);
+		    			console.log('acNotes: state change start, target url is ' + toState.url + "; state is " + toState.name);
 		    			
 // 		    			if (toState.name === 'login' || toState.name === 'register') {
 // 		    				if (angular.isDefined($rootScope.isLogin) && $rootScope.isLogin) {
@@ -80,17 +80,17 @@
         	templateUrl: '/views/notelist.html',
 			controller: 'NoteListController'
 		})
-        .state('home.node.create', {
+        .state('home.note.create', {
         	url: '/create',
         	templateUrl: '/views/note.html',
 			controller: 'NoteController'
         })
-        .state('home.node.maintain', {
+        .state('home.note.maintain', {
         	url: '/maintain/:id',
         	templateUrl: '/views/note.html',
 			controller: 'NoteController'
         })
-        .state('home.node.display', {
+        .state('home.note.display', {
         	url: '/display/:id',
         	templateUrl: '/views/note.html',
 			controller: 'NoteController'
@@ -122,8 +122,50 @@
 		  .fallbackLanguage('en');		
 	}])
 	
+	.factory('ApiFactory', ["$resource", function($resource) {
+    	return $resource('/api/note/:id',{id:'@ID'},{
+        	update: { method: 'PUT' },
+			query: { method: 'GET' }
+    	});
+	}])
+	
+// 	.provider("DBAPI", ["$resource", "$q", function($resource, $q) {
+//   		var salutation = 'Hello';
+//   		this.setSalutation = function(s) {
+//     		salutation = s;
+//   		}
+// 		
+// 
+// 		function ApiClass(a) {
+// 			this.greet = function() {
+// 				return salutation + ' ' + a;
+// 			}
+// 			
+// 			this.getNoteList = function() {
+// 				var apiNote = $resource('/api/note/:id');
+// 
+// 				apiNote.get({id: 123}).$promise.then(function(todo) {
+// 				// success
+// 				$scope.todos = todos;
+// 				}, function(errResponse) {
+// 				// fail
+// 				});
+// 				
+// 				Todo.query().$promise.then(function(todos) {
+// 				// success
+// 				$scope.todos = todos;
+// 				}, function(errResponse) {
+// 				// fail
+// 				});
+// 			}
+// 		}
+// 		
+// 		this.$get = function(a) {
+// 			return new ApiClass(a);
+// 		};
+// 	}])
+	
 	.controller('MainController', ['$scope', '$rootScope', '$log', '$translate', function($scope, $rootScope, $log, $translate) {
-		$log.info("Entering MainController...");
 // 		$scope.currentTheme = "readable"; 
 // 		
 // 		var arCSS = utils.getThemeCSSPath($scope.currentTheme);
@@ -255,10 +297,65 @@
 // 		};
 	}])
 
-	.controller('NoteListController', ['$scope', '$rootScope', '$state', '$http', '$log', function($scope, $rootScope, $state, $http, $log) {
-	}])
-	.controller('NoteController', ['$scope', '$rootScope', '$state', '$http', '$log', function($scope, $rootScope, $state, $http, $log) {
+	.controller('NoteListController', ['$scope', '$rootScope', '$state', '$log', 'ApiFactory', function($scope, $rootScope, $state, $log, ApiFactory) {
+		$scope.Notes = [];
+		ApiFactory.query().$promise.then(function(response) {
+			$scope.Notes = response.json;
+			$scope.dispList = [].concat($scope.Notes);
+			}, function(reason) {
+				// Error handling.
+			});
+	
+		$scope.newItem = function() {
+			$state.go('home.note.create');
+		};
+		
+		$scope.deleteItem = function(note){
+			// if(popupService.showPopup('Really delete this?')){
+			//     note.$delete(function(){
+			//         $window.location.href='';
+			//     });
+			// }
+		}
+		
 	}])
 	
+	.controller('NoteController', ['$scope', '$rootScope', '$state', '$stateParams', '$log', function($scope, $rootScope, $state, $stateParams, $log) {
+		$scope.isReadonly = false;
+		$scope.ContentModified = false;
+		$scope.NoteObject = new Note();
+		
+		//$scope.NoteObject = new 
+		$scope.tinymceOptions = {
+			onChange: function(e) {
+				if (!$scope.isReadonly) {
+					$scope.ContentModified = true;
+				}
+			},
+			inline: false,
+			menubar: false,
+			statusbar: false,
+			toolbar: "fontselect fontsizeselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link forecolor backcolor | removeformat",
+			plugins : 'advlist autolink link image lists charmap print preview',
+			skin: 'lightgray',
+			theme : 'modern'
+			};
+		
+		$scope.submit = function() {
+			
+		}	
+		
+		$scope.close = function() {
+			$state.go('home.note.list');
+		}
+	}])
+	
+	.controller('ToDoListController', ['$scope', '$rootScope', '$state', '$http', '$log', function($scope, $rootScope, $state, $http, $log) {
+		
+	}])
+	
+	.controller('ToDoController', ['$scope', '$rootScope', '$state', '$http', '$log', function($scope, $rootScope, $state, $http, $log) {
+		
+	}])
 	;
 })();

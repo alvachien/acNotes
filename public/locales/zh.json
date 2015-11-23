@@ -13,5 +13,11 @@
 	"New": "New",
 	"Refresh": "Refresh",
 	"Display": "Display",
-	"Edit": "Edit"
+	"Edit": "Edit",
+	"Operations": "Operations",
+	"Submit": "Submit",
+	"BackToList": "Back to List",
+	"ID": "ID",
+	"Name": "Name",
+	"Content": "Content"
 }
