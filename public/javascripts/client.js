@@ -123,9 +123,12 @@
 	}])
 	
 	.factory('ApiFactory', ["$resource", function($resource) {
-    	return $resource('/api/note/:id',{id:'@ID'},{
+    	return $resource('/api/note/:id',{id:'@ID'}, {
         	update: { method: 'PUT' },
-			query: { method: 'GET' }
+			query:  { method: 'GET' },
+			create: { method: 'POST' },
+			delete: { method: 'DELETE' },
+			get:    { method:'GET' }
     	});
 	}])
 	
@@ -311,16 +314,10 @@
 		};
 		
 		$scope.deleteItem = function(note){
-			// if(popupService.showPopup('Really delete this?')){
-			//     note.$delete(function(){
-			//         $window.location.href='';
-			//     });
-			// }
-		}
-		
+		}		
 	}])
 	
-	.controller('NoteController', ['$scope', '$rootScope', '$state', '$stateParams', '$log', function($scope, $rootScope, $state, $stateParams, $log) {
+	.controller('NoteController', ['$scope', '$rootScope', '$state', '$stateParams', '$log', 'ApiFactory', function($scope, $rootScope, $state, $stateParams, $log, ApiFactory) {
 		$scope.isReadonly = false;
 		$scope.ContentModified = false;
 		$scope.NoteObject = new Note();
@@ -340,9 +337,34 @@
 			skin: 'lightgray',
 			theme : 'modern'
 			};
+			
+		if (angular.isDefined($stateParams.id)) {
+			if ($state.current.name === "home.learn.object.maintain") {
+			} else if ($state.current.name === "home.learn.object.display") {
+			    $scope.isReadonly = true;
+			}
+ 				
+			var nID = parseInt($stateParams.id);
+			var newData = new ApiFactory();
+			newData.$get({id : nID}, 
+				function(nte) {
+      				$scope.NoteObject = nte;
+    			}, function(reason) {
+					
+				});
+		} else {
+		    //$scope.Activity = "Common.Create";
+		    //$scope.ActivityID = hih.Constants.UIMode_Create;
+		};
+			
 		
 		$scope.submit = function() {
-			
+			var newData = new ApiFactory();
+			newData.Name = $scope.NoteObject.Name;
+			newData.Content = $scope.NoteObject.Content;
+			newData.$save(function(response) {
+				$state.go("home.note.display", { id : response.json.insertId });
+			});
 		}	
 		
 		$scope.close = function() {

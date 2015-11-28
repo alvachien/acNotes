@@ -1,6 +1,8 @@
 var express = require('express');
 var mysql = require('mysql');
 var api = express.Router();
+var bodyParser = require('body-parser');
+api.use(bodyParser.json());
 
 var pool  = mysql.createPool({
   connectionLimit : 10,
@@ -10,56 +12,56 @@ var pool  = mysql.createPool({
   database        : 'ntd'
 });
 
-// Database connection here.
-// Following codes tested successfully 
-// var mysql      = require('mysql');
-// var connection = mysql.createConnection({
-//     host : 'localhost',
-//     port : 3306,
-//     user : 'root',
-//     password : '123456',
-//     database : 'test',
-//     charset : 'UTF8_GENERAL_CI',
-//     debug : false
-// });
-//  
-// connection.connect();
-// connection.query('USE hih', function(error, rows, fields) {
-//         if(error) throw error;
-//     });
-// connection.query('SELECT * FROM t_user', function selectCb(error, results, fields) {
-//       if (error) throw error;
-//       // Uncomment these if you want lots of feedback
-//       //console.log('Results:');
-//       //console.log(results);
-//       //console.log('Field metadata:');
-//       //console.log(fields);
-//       //console.log(sys.inspect(results));
-//        
-//       if(results.length > 0)
-//       {   
-//         for(var i = 0; i < results.length; i ++) {
-//           console.log(' === ' + i.toString() + ' === ');
-//           console.log('User ID: ' + results[i]['UserID']);
-//           console.log('Display As: ' + results[i]['DISPLAYAS']);
-//         }       
-//         //var firstResult = results[0];
-//         
-//       }
-//     });
-// connection.end();
-
 api.route('/note')
   .post(function(req, res) {
+    console.log("Entering API/NOTE CREATING...");
     // Create
-    
+    var newNote = {
+      NAME: req.body['Name'],
+      CONTENT: req.body['Content'],
+      PARID: req.body['ParentID']
+    };
+   
+    // Now do the DB updates
+    pool.getConnection(function(err, connection) {
+      if (err) {
+        console.error('CONNECTION error: ', err);
+          res.statusCode = 503;
+          res.send({
+              result: 'error',
+              err:    err.code
+          });
+      }
+      
+      // Use the connection       
+      var localquery = connection.query( 'INSERT INTO t_note SET ?', newNote, function(err, rows) {
+        if (err) {
+          console.error('DB error: ',err);
+          console.error(err);
+          
+          res.statusCode = 500;
+          res.send({
+              result: 'error',
+              err:    err.code
+          });
+        } else {          
+          res.send({
+            result: 'success',
+            err:    '',
+            json:   rows,
+            length: rows.length
+          });
+        }
+        
+        connection.release();
+      });
+      console.log(localquery.sql); // get raw query
+    });
   })
   .get(function(req, res) {
     // List
-    console.log("GET on API.NOTE");
-    //console.log(req);
-    //res.setHeader({ 'Content-Type': 'application/json' });
-    
+    console.log("Entering API/NOTE LISTING...");
+   
     pool.getConnection(function(err, connection) {
       if (err) {
         console.error('CONNECTION error: ',err);
@@ -96,16 +98,134 @@ api.route('/note')
  
 api.route('/note/:node_id')
   .get(function(req, res) {
-    // Read single
-    res.setHeader({ 'Content-Type': 'application/json' });
+    console.log("Entering API/NOTE READING...");
+    pool.getConnection(function(err, connection) {
+      if (err) {
+        console.error('CONNECTION error: ',err);
+          res.statusCode = 503;
+            res.send({
+                result: 'error',
+                err:    err.code
+            });
+      }
+      
+      // Use the connection
+      connection.query( 'SELECT * FROM t_note WHERE ID = ?', req.params.node_id, function(err, rows) {
+        if (err) {
+          console.error('DB error: ',err);
+          console.error(err);
+          res.statusCode = 500;
+          res.send({
+              result: 'error',
+              err:    err.code
+          });
+        } else {
+          var newNote = { };
+          if (rows.length === 1) {
+            newNote = {
+              Name: rows[0].NAME,
+              Content: rows[0].CONTENT,
+              ParentID: rows[0].PARID
+            } ; 
+          }
+          res.send({
+              result: 'success',
+              err:    '',
+              json:   newNote,
+              length: rows.length
+           });
+        }
+        connection.release();
+    });
+  });
   })
   .put(function(req, res) {
-    // Update single
-    res.setHeader({ 'Content-Type': 'application/json' });
+    console.log("Entering API/NOTE Updating...");
+    pool.getConnection(function(err, connection) {
+      if (err) {
+        console.error('CONNECTION error: ',err);
+          res.statusCode = 503;
+            res.send({
+                result: 'error',
+                err:    err.code
+            });
+      }
+      
+      // Use the connection
+      var localquery = connection.query( 'SELECT * FROM t_note WHERE ID = ? FOR UPDATE;', req.params.node_id, function(err, rows) {
+        if (err) {
+          console.error('DB error: ',err);
+          console.error(err);
+          res.statusCode = 500;
+          res.send({
+              result: 'error',
+              err:    err.code
+          });
+        } else {
+          if (rows.length === 1) {
+            var updNote = {
+              NAME: req.body['Name'],
+              CONTENT: req.body['Content'],
+              PARID: req.body['ParentID']
+            };
+            var localquery2 = connection.query( 'UPDATE t_note SET ? WHERE ID = ?', [updNote, req.params.node_id], function(err2, rows2) {
+              if (err2) {
+                console.error('DB error: ',err);
+                console.error(err2);
+                res.statusCode = 500;
+                res.send({
+                    result: 'error',
+                    err:    err2.code
+                });
+              } else {
+                res.send({
+                    result: 'success',
+                    err:    ''
+                });
+              }
+            });
+            console.log(localquery2.sql); // get raw query 
+          }
+        }
+        connection.release();
+    });
+    
+    console.log(localquery.sql); // get raw query
+  });    
   })
   .delete(function(req, res){
-    // Delete single
-    res.setHeader({ 'Content-Type': 'application/json' });
+    console.log("Entering API/NOTE Deleting...");
+    pool.getConnection(function(err, connection) {
+      if (err) {
+        console.error('CONNECTION error: ',err);
+          res.statusCode = 503;
+            res.send({
+                result: 'error',
+                err:    err.code
+            });
+      }
+      
+      // Use the connection
+      connection.query( 'DELETE FROM t_note WHERE ID = ?', req.params.node_id, function(err, rows) {
+        if (err) {
+          console.error('DB error: ',err);
+          console.error(err);
+          res.statusCode = 500;
+          res.send({
+              result: 'error',
+              err:    err.code
+          });
+        } else {
+          res.send({
+              result: 'success',
+              err:    ''
+           });
+        }
+        
+        connection.release();
+      });
+    });
+    
   });
 
 module.exports = api;
