@@ -10,27 +10,26 @@
 			 $rootScope.$stateParams = $stateParams;
 			    
 			 $rootScope.$on('$stateChangeStart', 
-		    		function(event, toState, toParams, fromState, fromParams) {
-		    			console.log('acNotes: state change start, target url is ' + toState.url + "; state is " + toState.name);
-		    			
-// 		    			if (toState.name === 'login' || toState.name === 'register') {
-// 		    				if (angular.isDefined($rootScope.isLogin) && $rootScope.isLogin) {
-// 		    					console.log('HIH: state change failed: already login but ask for login page, redirect to home page...');
-// 		    					event.preventDefault();
-// 		    					$state.go("home.welcome");
-// 		    				} 
-// 		    				return;
-// 		    			}  
-// 		    			
-// 		    			if (angular.isDefined($rootScope.isLogin) && $rootScope.isLogin) {
-// 		    				return;
-// 		    			}
-// 
-// 		    			console.log('HIH: state change failed: not login, redirect to login page...');
-// 	    		    	event.preventDefault();
-// 	    		    	$state.go("login");
-			    	}
-			    );
+				function(event, toState, toParams, fromState, fromParams) {
+					console.log('acNotes: state change start, target url is ' + toState.url + "; state is " + toState.name);
+					
+					if (toState.name === 'login' || toState.name === 'register') {
+						if (angular.isDefined($rootScope.isLogin) && $rootScope.isLogin) {
+							console.log('HIH: state change failed: already login but ask for login page, redirect to home page...');
+							event.preventDefault();
+							$state.go("home.welcome");
+						} 
+						return;
+					}  
+					
+					if (angular.isDefined($rootScope.isLogin) && $rootScope.isLogin) {
+						return;
+					}
+
+					console.log('HIH: state change failed: not login, redirect to login page...');
+					event.preventDefault();
+					$state.go("login");
+				});
 			}
 		])
 
@@ -99,7 +98,18 @@
           url: '/about',
           templateUrl: '/views/about.html',
           controller: 'AboutController'
-        });
+        })
+		.state("login", {
+			url: "/login",
+			templateUrl: '/views/login.html',
+			controller: 'LoginController'
+		})
+		.state('register', {
+			url: '/register',
+			templateUrl: '/views/register.html',
+			controller: 'RegisterController'
+		})
+		;
 		
 		// Translate configurations
 		$translateProvider.useStaticFilesLoader({
@@ -122,7 +132,7 @@
 		  .fallbackLanguage('en');		
 	}])
 	
-	.factory('ApiFactory', ["$resource", function($resource) {
+	.factory('NoteApi', ["$resource", function($resource) {
     	return $resource('/api/note/:id',{id:'@ID'}, {
         	update: { method: 'PUT' },
 			query:  { method: 'GET' },
@@ -257,8 +267,8 @@
 // 			{userobj: 'Created On', usercont: $scope.CurrentUser.usercreatedon}
 // 			];
 // 		
-// 		$scope.logout = function() {
-// 			$log.info("HIH: Logout triggerd!");
+ 		$scope.logout = function() {
+ 			$log.info("HIH: Logout triggerd!");
 // 			utils.sendRequest( { objecttype: 'USERLOGOUT' }, function (data, status, headers, config) {
 // 				
 // 				// Clear the current user information
@@ -272,8 +282,7 @@
 // 				// Throw out error message				
 // 				$rootScope.$broadcast('ShowMessage', 'Error', 'Failed to logout!');
 // 			});
-// 		};
-// 		
+ 		};
 // 		$scope.setTheme = function(theme) {
 // 			$log.info("HIH: Theme change triggerd!");
 // 
@@ -300,9 +309,9 @@
 // 		};
 	}])
 
-	.controller('NoteListController', ['$scope', '$rootScope', '$state', '$log', 'ApiFactory', function($scope, $rootScope, $state, $log, ApiFactory) {
+	.controller('NoteListController', ['$scope', '$rootScope', '$state', '$log', 'NoteApi', function($scope, $rootScope, $state, $log, NoteApi) {
 		$scope.Notes = [];
-		ApiFactory.query().$promise.then(function(response) {
+		NoteApi.query().$promise.then(function(response) {
 			$scope.Notes = response.json;
 			$scope.dispList = [].concat($scope.Notes);
 			}, function(reason) {
@@ -313,11 +322,11 @@
 			$state.go('home.note.create');
 		};
 		
-		$scope.deleteItem = function(note){
+		$scope.deleteItem = function(note) {
 		}		
 	}])
 	
-	.controller('NoteController', ['$scope', '$rootScope', '$state', '$stateParams', '$log', 'ApiFactory', function($scope, $rootScope, $state, $stateParams, $log, ApiFactory) {
+	.controller('NoteController', ['$scope', '$rootScope', '$state', '$stateParams', '$log', 'NoteApi', function($scope, $rootScope, $state, $stateParams, $log, NoteApi) {
 		$scope.isReadonly = false;
 		$scope.ContentModified = false;
 		$scope.NoteObject = new Note();
@@ -339,13 +348,13 @@
 			};
 			
 		if (angular.isDefined($stateParams.id)) {
-			if ($state.current.name === "home.learn.object.maintain") {
-			} else if ($state.current.name === "home.learn.object.display") {
+			if ($state.current.name === "home.note.maintain") {
+			} else if ($state.current.name === "home.note.display") {
 			    $scope.isReadonly = true;
 			}
  				
 			var nID = parseInt($stateParams.id);
-			var newData = new ApiFactory();
+			var newData = new NoteApi();
 			newData.$get({id : nID}, 
 				function(nte) {
       				$scope.NoteObject = nte;
@@ -359,7 +368,7 @@
 			
 		
 		$scope.submit = function() {
-			var newData = new ApiFactory();
+			var newData = new NoteApi();
 			newData.Name = $scope.NoteObject.Name;
 			newData.Content = $scope.NoteObject.Content;
 			newData.$save(function(response) {
@@ -379,5 +388,103 @@
 	.controller('ToDoController', ['$scope', '$rootScope', '$state', '$http', '$log', function($scope, $rootScope, $state, $http, $log) {
 		
 	}])
-	;
+	
+	.controller('LoginController', ['$scope', '$rootScope', '$state', '$resource', '$translate', function($scope, $rootScope, $state, $resource, $translate) {
+		$scope.credentials = {
+			username: "",
+			password: ""
+		};
+			
+		$scope.login = function() {
+			// Verify the inputs first!
+			// To-Do
+			
+			// Then, real logon
+			var req = $resource('/api/login', {},
+				{ 'login':   {method:'POST'} });
+			req.login();
+			
+			// $http.post('script/hihsrv.php', { objecttype: 'USERLOGIN', loginuser:$scope.credentials.username, loginpassword: $scope.credentials.password } ).
+			// 	success(function(data, status, headers, config) {
+			// 	// this callback will be called asynchronously when the response is available
+			// 		$rootScope.isLogin = true;
+			// 		$rootScope.CurrentUser = {
+			// 		userid:data.UserID,
+			// 		userdisplayas: data.UserDisplayAs,
+			// 		usercreatedon: data.UserCreatedOn,
+			// 		usergender: data.UserGender
+			// 		};
+			// 		
+			// 		// Navigate to the home page					  
+			// 		$rootScope.$state.go("home.welcome");
+			// 	}).
+			// 	error(function(data, status, headers, config) {
+			// 		// called asynchronously if an error occurs or server returns response with an error status.
+			// 		$rootScope.$broadcast("ShowMessage", "Error", data.Message);
+			// 	});
+			
+			// Go to some other page?
+		};
+		
+		$scope.register = function() {
+			//$location.path('/register');
+			$state.go('login.register');
+		};
+	}])
+	
+	// Register controller
+	.controller('RegisterController', ['$scope', '$rootScope', '$state', '$translate', '$resource', function($scope, $rootScope, $state, $translate, $resource) {
+		//$scope.registerInfo = new hih.UserRegistration();
+		$scope.PasswordStrengthValue = 0;
+		$scope.ProgressClass = "progress-bar progress-bar-danger";
+		$scope.regGender = "0";
+			
+		$scope.$watch('registerInfo', function(newVal, oldVal) {
+			if (newVal.Password !== oldVal.Password) {
+				//var nLevel = hih.ModelUtility.CheckPasswordStrength(newVal.Password);
+				if (nLevel === hih.Constants.Login_PwdStrgth_VeryStrong) {
+					$scope.PasswordStrengthValue = 100;
+					$scope.ProgressClass = "progress-bar progress-bar-success";
+				} else if (nLevel === hih.Constants.Login_PwdStrgth_Strong) {
+					$scope.PasswordStrengthValue = 80;
+					$scope.ProgressClass = "progress-bar progress-bar-info";
+					
+				} else if (nLevel === hih.Constants.Login_PwdStrgth_Normal) {
+					$scope.PasswordStrengthValue = 60;
+					$scope.ProgressClass = "progress-bar progress-bar-warning";
+				} else if (nLevel === hih.Constants.Login_PwdStrgth_Weak) {
+					$scope.PasswordStrengthValue = 30;
+					$scope.ProgressClass = "progress-bar progress-bar-danger";
+				} else {
+					$scope.PasswordStrengthValue = 0;
+					$scope.ProgressClass = "progress-bar progress-bar-danger";
+				}
+			}
+		}, true);
+		
+		$scope.submitRegister = function() {
+			$scope.registerInfo.Gender = parseInt($scope.regGender);
+			
+			var msgs = $scope.registerInfo.Verify();
+			if ($.isArray(msgs) && msgs.length > 0) {
+				// To-Do
+				// 
+				$.each(msgs, function(idx, objMsg) {
+					$rootScope.$broadcast('ShowMessageNeedTranslate', objMsg, 'Common.Error', 'error');
+				})
+				return;	
+			} else {
+				utils.registerUserQ($scope.registerInfo)
+					.then(function(response) {
+						$state.go("login");
+					}, function(reason) {
+						$rootScope.$broadcast('ShowMessage', "Error", reason);
+					});
+			}
+		};
+		
+		$scope.cancel = function() {
+			$state.go('login');
+		};
+	}]);
 })();
