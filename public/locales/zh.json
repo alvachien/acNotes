@@ -33,7 +33,8 @@
  	},
 	
 	 "Common": {
-		"Language": "Language" 
+		"Language": "Language",
+		"Themes": "Themes"
 	 },
 
 	"MainPage": "Main Page",
