@@ -44,7 +44,7 @@ var updateUserLog = function(connection, usr, res, logType) {
               {
                 USER: usr,
                 SEQNO: maxSeq,
-                LOGTYPE: 'B',
+                LOGTYPE: logType,
                 STARTPOINT: new Date(),
                 ENDPOINT: new Date()
               }, 
@@ -57,8 +57,7 @@ var updateUserLog = function(connection, usr, res, logType) {
                   res.send({
                       result: 'error',
                       err:    err.code
-                  });
-                  
+                  });                  
                 } else {
                   res.statusCode = 200;
                   var txt = null;
@@ -288,7 +287,7 @@ api.route('/login')
               
               updateUserLog(connection, usr, res, 'B');
               
-              req.session.CurrentUser = usr;              
+              req.session.CurrentUser = usr;
             }
           
             connection.release();
@@ -356,8 +355,11 @@ api.route('/note')
       ID: uuid(32, 16),
       NAME: req.body['Name'],
       CONTENT: req.body['Content'],
-      PARID: req.body['ParentID'],
-      TAGS: req.body['Tags']
+      PARID: req.body['ParentID'],      
+      TAGS: req.body['Tags'],
+      CREATEDAT: new Date(),
+      LASTCHGEDAT: new Date(),
+      CREATEDBY: sess.CurrentUser
     };
    
     // Now do the DB updates
@@ -423,17 +425,32 @@ api.route('/note')
           if (err) {
             console.error('DB error: ',err);
             console.error(err);
+            
             res.statusCode = 500;
             res.send({
                 result: 'error',
                 err:    err.code
             });
           } else {
+            var njdata = [];
+            for(var i1 = 0; i1 < rows.length; i1++) {
+              njdata.push({
+                ID: rows[i1].ID,
+                Name: rows[i1].NAME,
+                Content: rows[i1].CONTENT,
+                ParentID: rows[i1].PARID,
+                Tags: rows[i1].TAGS,
+                CreatedAt: rows[i1].CREATEDAT,
+                CreatedBy: rows[i1].CREATEDBY,
+                LastChangedAt: rows[i1].LASTCHGEDAT,
+                LastChangedBy: rows[i1].LASTCHGEDBY  
+              });
+            }
             res.send({
                 result: 'success',
                 err:    '',
-                json:   rows,
-                length: rows.length
+                json:   njdata,
+                length: njdata.length
             });
           }
         });
@@ -479,9 +496,14 @@ api.route('/note/:node_id')
               var newNote = { };
               if (rows.length === 1) {
                 newNote = {
+                  ID: rows[0].ID,
                   Name: rows[0].NAME,
                   Content: rows[0].CONTENT,
-                  ParentID: rows[0].PARID
+                  ParentID: rows[0].PARID,
+                  CreatedAt: rows[0].CREATEDAT,
+                  CreatedBy: rows[0].CREATEDBY,
+                  LastChangedAt: rows[0].LASTCHGEDAT,
+                  LastChangedBy: rows[0].LASTCHGEDBY
                 } ; 
               }
               res.send({
@@ -534,12 +556,16 @@ api.route('/note/:node_id')
                 var updNote = {
                   NAME: req.body['Name'],
                   CONTENT: req.body['Content'],
-                  PARID: req.body['ParentID']
+                  PARID: req.body['ParentID'],
+                  TAGS: req.body['Tags'],
+                  LASTCHGEDAT: new Date(),
+                  LASTCHGEDBY: sess.CurrentUser
                 };
                 var localquery2 = connection.query( 'UPDATE t_note SET ? WHERE ID = ?', [updNote, req.params.node_id], function(err2, rows2) {
                   if (err2) {
                     console.error('DB error: ',err);
                     console.error(err2);
+                    
                     res.statusCode = 500;
                     res.send({
                         result: 'error',
@@ -589,6 +615,7 @@ api.route('/note/:node_id')
             if (err) {
               console.error('DB error: ',err);
               console.error(err);
+              
               res.statusCode = 500;
               res.send({
                   result: 'error',

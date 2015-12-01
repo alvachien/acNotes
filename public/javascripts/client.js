@@ -15,7 +15,7 @@
 					
 					if (toState.name === 'login' || toState.name === 'register') {
 						if (angular.isDefined($rootScope.isLogin) && $rootScope.isLogin) {
-							console.log('HIH: state change failed: already login but ask for login page, redirect to home page...');
+							console.log('acNotes: state change failed: already login but ask for login page, redirect to home page...');
 							event.preventDefault();
 							$state.go("home.welcome");
 						} 
@@ -26,7 +26,7 @@
 						return;
 					}
 
-					console.log('HIH: state change failed: not login, redirect to login page...');
+					console.log('acNotes: state change failed: not login, redirect to login page...');
 					event.preventDefault();
 					$state.go("login");
 				});
@@ -142,42 +142,6 @@
     	});
 	}])
 	
-// 	.provider("DBAPI", ["$resource", "$q", function($resource, $q) {
-//   		var salutation = 'Hello';
-//   		this.setSalutation = function(s) {
-//     		salutation = s;
-//   		}
-// 		
-// 
-// 		function ApiClass(a) {
-// 			this.greet = function() {
-// 				return salutation + ' ' + a;
-// 			}
-// 			
-// 			this.getNoteList = function() {
-// 				var apiNote = $resource('/api/note/:id');
-// 
-// 				apiNote.get({id: 123}).$promise.then(function(todo) {
-// 				// success
-// 				$scope.todos = todos;
-// 				}, function(errResponse) {
-// 				// fail
-// 				});
-// 				
-// 				Todo.query().$promise.then(function(todos) {
-// 				// success
-// 				$scope.todos = todos;
-// 				}, function(errResponse) {
-// 				// fail
-// 				});
-// 			}
-// 		}
-// 		
-// 		this.$get = function(a) {
-// 			return new ApiClass(a);
-// 		};
-// 	}])
-	
 	.controller('MainController', ['$scope', '$rootScope', '$log', '$translate', function($scope, $rootScope, $log, $translate) {
 // 		$scope.currentTheme = "readable"; 
 // 		
@@ -197,27 +161,24 @@
 // 			}
 // 		});
 // 		
-// 		$scope.$on('ShowMessage', function (oEvent, msgHeader, msgDetail, msgType, conf_func) {
-// 			console.log('HIH: ShowMessage event occurred');
-// 			
-// 			if (conf_func && angular.isFunction(conf_func)) {
-// 				window.swal({ title: msgHeader,   
-// 					text: msgDetail,   
-// 					type: msgType || "warning", 
-// 					showCancelButton: true, 
-// 					confirmButtonColor: "#DD6B55", 
-// 					confirmButtonText: "Yes, delete it!", 
-// 					closeOnConfirm: true }, 
-// 					conf_func
-// 					// function() { 
-// 					// 	window.swal("Deleted!", "Your imaginary file has been deleted.", "success"); 
-// 					// }
-// 					);
-// 			} else {
-// 				window.swal(msgHeader, msgDetail, msgType || "error");
-// 			}
-// 		});
-// 		
+		$scope.$on('ShowMessage', function (oEvent, msgHeader, msgDetail, msgType, conf_func) {
+			console.log('HIH: ShowMessage event occurred');
+			
+			if (conf_func && angular.isFunction(conf_func)) {
+				window.swal({ title: msgHeader,   
+					text: msgDetail,   
+					type: msgType || "warning", 
+					showCancelButton: true, 
+					confirmButtonColor: "#DD6B55", 
+					confirmButtonText: "Yes, delete it!", 
+					closeOnConfirm: true }, 
+					conf_func
+					);
+			} else {
+				window.swal(msgHeader, msgDetail, msgType || "error");
+			}
+		});
+ 		
 // 		$scope.$on('ShowMessageNeedTranslate', function (oEvent, msgHeaderStr, msgDetailStr, msgType, conf_func) {
 // 			console.log('HIH: ShowMessage event occurred');
 // 			
@@ -242,8 +203,8 @@
 // 		});
 	}])
 	
-	.controller('HomeController', ['$scope', '$rootScope', '$state', '$http', '$log', '$translate', 
-		function($scope, $rootScope, $state, $http, $log, $translate) {		
+	.controller('HomeController', ['$scope', '$rootScope', '$state', '$resource', '$log', '$translate', 
+		function($scope, $rootScope, $state, $resource, $log, $translate) {		
 // 		$scope.CurrentUser = $rootScope.CurrentUser;
 // 		
 // 		// Load the finance setting out
@@ -268,20 +229,20 @@
 // 			];
 // 		
  		$scope.logout = function() {
- 			$log.info("HIH: Logout triggerd!");
-// 			utils.sendRequest( { objecttype: 'USERLOGOUT' }, function (data, status, headers, config) {
-// 				
-// 				// Clear the current user information
-// 				$rootScope.isLogin = false;
-// 				$rootScope.CurrentUser = {};
-// 				$scope.CurrentUser = {};
-// 				
-// 				// Redirect to login page
-// 				$state.go('login');
-// 			}, function(data, status, headers, config) {
-// 				// Throw out error message				
-// 				$rootScope.$broadcast('ShowMessage', 'Error', 'Failed to logout!');
-// 			});
+ 			$log.info("acNotes: Logout triggerd!");
+
+			var req = $resource('/api/logout');				
+			req.save(function(response) {
+				console.log("acNotes: Logout Successfully!");
+				console.log(response);
+				$rootScope.isLogin = false;
+				
+				$state.go("login");
+			}, function(reason) {
+				console.log("acNotes: Logout Failed!");
+				console.log(reason);
+				$rootScope.$broadcast('ShowMessage', "Error", reason.data.err);
+			});
  		};
 // 		$scope.setTheme = function(theme) {
 // 			$log.info("HIH: Theme change triggerd!");
@@ -322,7 +283,44 @@
 			$state.go('home.note.create');
 		};
 		
-		$scope.deleteItem = function(note) {
+		$scope.displayItem = function(row) {
+			var nID = "";
+			if (row) {
+				nID = row.ID;
+			} else {
+				for(var i = 0; i < $scope.dispList.length; i ++) {
+					if ($scope.dispList[i].isSelected) {
+						nID = $scope.dispList[i].ID;
+						break;
+					}
+				}
+			}
+			
+			$state.go("home.note.display",  { id : nID });
+		};
+		
+		$scope.editItem = function(row) {
+			var nID = "";
+			if (row) {
+				nID = row.ID;
+			} else {
+				for(var i = 0; i < $scope.dispList.length; i ++) {
+					if ($scope.dispList[i].isSelected) {
+						nID = $scope.dispList[i].ID;
+						break;
+					}
+				}
+			}
+			
+			$state.go("home.note.maintain",  { id : nID });
+		};
+		
+		$scope.deleteItem = function(row) {
+			if (row) {
+				
+			} else {
+				
+			}
 		}		
 	}])
 	
@@ -345,7 +343,7 @@
 			plugins : 'advlist autolink link image lists charmap print preview',
 			skin: 'lightgray',
 			theme : 'modern'
-			};
+		};
 			
 		if (angular.isDefined($stateParams.id)) {
 			if ($state.current.name === "home.note.maintain") {
@@ -353,11 +351,11 @@
 			    $scope.isReadonly = true;
 			}
  				
-			var nID = parseInt($stateParams.id);
+			var nID = $stateParams.id;
 			var newData = new NoteApi();
 			newData.$get({id : nID}, 
 				function(nte) {
-      				$scope.NoteObject = nte;
+      				$scope.NoteObject.fromJSON(nte.json);
     			}, function(reason) {
 					
 				});
@@ -365,16 +363,16 @@
 		    //$scope.Activity = "Common.Create";
 		    //$scope.ActivityID = hih.Constants.UIMode_Create;
 		};
-			
 		
 		$scope.submit = function() {
 			var newData = new NoteApi();
 			newData.Name = $scope.NoteObject.Name;
 			newData.Content = $scope.NoteObject.Content;
+			
 			newData.$save(function(response) {
 				$state.go("home.note.display", { id : response.json.insertId });
 			});
-		}	
+		}
 		
 		$scope.close = function() {
 			$state.go('home.note.list');
@@ -400,34 +398,22 @@
 			// To-Do
 			
 			// Then, real logon
-			var req = $resource('/api/login', {},
-				{ 'login':   {method:'POST'} });
-			req.login();
-			
-			// $http.post('script/hihsrv.php', { objecttype: 'USERLOGIN', loginuser:$scope.credentials.username, loginpassword: $scope.credentials.password } ).
-			// 	success(function(data, status, headers, config) {
-			// 	// this callback will be called asynchronously when the response is available
-			// 		$rootScope.isLogin = true;
-			// 		$rootScope.CurrentUser = {
-			// 		userid:data.UserID,
-			// 		userdisplayas: data.UserDisplayAs,
-			// 		usercreatedon: data.UserCreatedOn,
-			// 		usergender: data.UserGender
-			// 		};
-			// 		
-			// 		// Navigate to the home page					  
-			// 		$rootScope.$state.go("home.welcome");
-			// 	}).
-			// 	error(function(data, status, headers, config) {
-			// 		// called asynchronously if an error occurs or server returns response with an error status.
-			// 		$rootScope.$broadcast("ShowMessage", "Error", data.Message);
-			// 	});
-			
-			// Go to some other page?
+			var req = $resource('/api/login');				
+			req.save({ Name: $scope.credentials.username, Password: $scope.credentials.password }, function(response) {
+				console.log("acNotes: Login Successfully!");
+				console.log(response);
+				$rootScope.isLogin = true;
+				
+				$state.go('home.welcome');
+			}, function(reason) {
+				console.log("acNotes: Login Failed!");
+				console.log(reason);
+				
+				$rootScope.$broadcast('ShowMessage', "Error", reason.data.err);
+			});
 		};
 		
 		$scope.register = function() {
-			//$location.path('/register');
 			$state.go('login.register');
 		};
 	}])
@@ -439,48 +425,48 @@
 		$scope.ProgressClass = "progress-bar progress-bar-danger";
 		$scope.regGender = "0";
 			
-		$scope.$watch('registerInfo', function(newVal, oldVal) {
-			if (newVal.Password !== oldVal.Password) {
-				//var nLevel = hih.ModelUtility.CheckPasswordStrength(newVal.Password);
-				if (nLevel === hih.Constants.Login_PwdStrgth_VeryStrong) {
-					$scope.PasswordStrengthValue = 100;
-					$scope.ProgressClass = "progress-bar progress-bar-success";
-				} else if (nLevel === hih.Constants.Login_PwdStrgth_Strong) {
-					$scope.PasswordStrengthValue = 80;
-					$scope.ProgressClass = "progress-bar progress-bar-info";
-					
-				} else if (nLevel === hih.Constants.Login_PwdStrgth_Normal) {
-					$scope.PasswordStrengthValue = 60;
-					$scope.ProgressClass = "progress-bar progress-bar-warning";
-				} else if (nLevel === hih.Constants.Login_PwdStrgth_Weak) {
-					$scope.PasswordStrengthValue = 30;
-					$scope.ProgressClass = "progress-bar progress-bar-danger";
-				} else {
-					$scope.PasswordStrengthValue = 0;
-					$scope.ProgressClass = "progress-bar progress-bar-danger";
-				}
-			}
-		}, true);
+		// $scope.$watch('registerInfo', function(newVal, oldVal) {
+		// 	if (newVal.Password !== oldVal.Password) {
+		// 		//var nLevel = hih.ModelUtility.CheckPasswordStrength(newVal.Password);
+		// 		if (nLevel === hih.Constants.Login_PwdStrgth_VeryStrong) {
+		// 			$scope.PasswordStrengthValue = 100;
+		// 			$scope.ProgressClass = "progress-bar progress-bar-success";
+		// 		} else if (nLevel === hih.Constants.Login_PwdStrgth_Strong) {
+		// 			$scope.PasswordStrengthValue = 80;
+		// 			$scope.ProgressClass = "progress-bar progress-bar-info";
+		// 			
+		// 		} else if (nLevel === hih.Constants.Login_PwdStrgth_Normal) {
+		// 			$scope.PasswordStrengthValue = 60;
+		// 			$scope.ProgressClass = "progress-bar progress-bar-warning";
+		// 		} else if (nLevel === hih.Constants.Login_PwdStrgth_Weak) {
+		// 			$scope.PasswordStrengthValue = 30;
+		// 			$scope.ProgressClass = "progress-bar progress-bar-danger";
+		// 		} else {
+		// 			$scope.PasswordStrengthValue = 0;
+		// 			$scope.ProgressClass = "progress-bar progress-bar-danger";
+		// 		}
+		// 	}
+		// }, true);
 		
 		$scope.submitRegister = function() {
-			$scope.registerInfo.Gender = parseInt($scope.regGender);
-			
-			var msgs = $scope.registerInfo.Verify();
-			if ($.isArray(msgs) && msgs.length > 0) {
-				// To-Do
-				// 
-				$.each(msgs, function(idx, objMsg) {
-					$rootScope.$broadcast('ShowMessageNeedTranslate', objMsg, 'Common.Error', 'error');
-				})
-				return;	
-			} else {
-				utils.registerUserQ($scope.registerInfo)
-					.then(function(response) {
-						$state.go("login");
-					}, function(reason) {
-						$rootScope.$broadcast('ShowMessage', "Error", reason);
-					});
-			}
+			// $scope.registerInfo.Gender = parseInt($scope.regGender);
+			// 
+			// var msgs = $scope.registerInfo.Verify();
+			// if ($.isArray(msgs) && msgs.length > 0) {
+			// 	// To-Do
+			// 	// 
+			// 	$.each(msgs, function(idx, objMsg) {
+			// 		$rootScope.$broadcast('ShowMessageNeedTranslate', objMsg, 'Common.Error', 'error');
+			// 	})
+			// 	return;	
+			// } else {
+			// 	utils.registerUserQ($scope.registerInfo)
+			// 		.then(function(response) {
+			// 			$state.go("login");
+			// 		}, function(reason) {
+			// 			$rootScope.$broadcast('ShowMessage', "Error", reason);
+			// 		});
+			// }
 		};
 		
 		$scope.cancel = function() {

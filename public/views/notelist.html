@@ -37,22 +37,26 @@
 			<tr>
 				<th></th>
 				<th st-sort="id">ID</th>
-				<th st-sort="ctgy" >Category</th>
+				<th st-sort="parid" >Parent</th>
 				<th st-sort="name" >Name</th>
 				<th st-sort="content">Content</th>
+				<th st-sort="lstchgat" >LastChged At</th>
+				<th st-sort="lstchgby" >LastChged By</th>
 				<th translate="Operations">Operations</th>
 			</tr>
 			<tr>
-				<th colspan="6"><input st-search="serch" class="form-control" placeholder="{{ 'Common.Search' | translate }}" type="text"/></th>
+				<th colspan="8"><input st-search="serch" class="form-control" placeholder="{{ 'Common.Search' | translate }}" type="text"/></th>
 			</tr>
 		</thead>
 		<tbody>
 			<tr ng-repeat="row in dispList">
 				<td cs-select="row"></td>
 				<td>{{row.ID}}</td>
-				<td>{{row.CategoryObject.FullDisplayText}}</td>
+				<td>{{row.ParentID}}</td>
 				<td>{{row.Name}}</td>
 				<td>{{row.Content | limitTo: 20}}</td>
+				<td>{{row.LastChangedAt}}</td>
+				<td>{{row.LastChangedBy}}</td>
 				<td>
 					<button type="button" class="btn btn-sm" ng-click="displayItem(row)" tooltip="{{'Common.Display' | translate}}">
 						<i class="glyphicon glyphicon-share">

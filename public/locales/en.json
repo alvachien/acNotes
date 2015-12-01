@@ -1,4 +1,41 @@
 {
+  	"Login": {
+    	"User": "User",
+    	"Password": "Password",
+    	"Register": "Register",
+        "Login": "Login",
+        "SignIn": "Sign in",
+        "SignUp":  "Sign up",
+    	"Logout": "Logout",
+		"ConfirmToLogout": "You can currently log out. Do you confirm to continue?",
+    	"LoginTitle": "Login into the System",
+    	"RegisterTitle": "Register a new User",
+    	"Email": "Email",
+    	"Gender": "Gender",
+    	"DisplayAs": "Display As",
+    	"ConfirmedPassword": "Confirm Password",
+    	"Male": "Male",
+    	"Female": "Female"    	
+ 	},
+	 
+ 	"Nav": {
+ 		"Home": "Home",
+        "Users": "Users",
+		"UserList": "User List",
+        "UserDetail": "User Detail",
+        "TakeALookAtUserDetail":  "Take a look at User Detail",
+ 		"LearningTrace": "Learning Trace",
+ 		"FinanceTrace": "Finance Trace",
+ 		"About": "About",
+ 		"Acknowledgements": "Acknowledgements",
+ 		"Version": "Version",
+		"Libraries": "Libraries"
+ 	},
+	 
+	 "Common": {
+		"Language": "Language" 
+	 },
+	
 	"MainPage": "Main Page",
 	"Notes": "Notes",
 	"ToDos": "To Dos",
