@@ -25,4 +25,6 @@
 		this.LastChangedAt = jsonData.LastChangedAt;
 		this.LastChangedBy = jsonData.LastChangedBy;
 	}
+	
+	// Writing the algorithms 
 }());
