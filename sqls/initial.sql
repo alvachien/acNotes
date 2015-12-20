@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `t_user_log` (
 CREATE TABLE IF NOT EXISTS `t_note` (
   `ID` varchar(32) NOT NULL,
   `NAME` varchar(50) NOT NULL,
-  `CONTENT` varchar(1) NOT NULL,
+  `CONTENT` text NOT NULL,
   `PARID` varchar(32) NOT NULL,
   `TAGS` varchar(50) NOT NULL,
   `CREATEDAT` datetime NOT NULL,
