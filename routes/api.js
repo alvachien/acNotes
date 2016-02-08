@@ -8,9 +8,9 @@ api.use(bodyParser.json());
 var pool  = mysql.createPool({
   connectionLimit : 10,
   host            : 'localhost',
-  user            : 'root',
-  password        : 'i035707',
-  database        : 'ntd'
+  user            : 'user',
+  password        : 'password',
+  database        : 'database'
 });
 
 
